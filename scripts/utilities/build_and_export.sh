@@ -44,6 +44,13 @@ if [[ -n "${REMOTE}" ]]; then
 fi
 echo "================================================="
 
+# --- Submodules ---
+# The prod/hpc Dockerfile stage pip-installs ./submodules/motor_cortex_eprop and
+# ./submodules/pfc_planner; the build fails if they're not checked out.
+echo
+echo ">>> Ensuring submodules are initialized"
+git submodule update --init --recursive
+
 # --- Build ---
 echo
 echo ">>> Building HPC image: ${FULL_IMAGE_NAME}"
@@ -71,8 +78,8 @@ echo "  singularity build sim.sif docker-archive://${TAR_FILE}"
 echo "create necessary folders with:"
 echo "  mkdir artifacts results scratch"
 echo "and run with:"
-echo "  singularity exec --bind ./scratch:/scratch_local --bind ./results:/sim/controller/runs --bind ./artifacts:/sim/controller/artifacts sim.sif python /sim/controller/complete_control/nrp_start_sim.py"
-echo "clone the repo and mount complete_control for code/parameter changes"
+echo "  singularity exec --bind ./scratch:/scratch_local --bind ./results:/sim/controller/runs sim.sif python -m neurocontroller.nrp_start_sim"
+echo "clone the repo and mount src/neurocontroller for code/parameter changes"
 
 # --- Optional: transfer & build on remote if REMOTE provided ---
 if [[ -n "${REMOTE}" ]]; then

@@ -1,0 +1,65 @@
+from pathlib import Path
+from typing import List, TypeVar
+
+from pydantic import BaseModel
+
+from neurocontroller.utils_common.custom_types import NdArray
+
+T = TypeVar("T")
+
+
+def convert_to_recording(
+    source: object, target_class: type[T], path: Path, comm=None
+) -> T:
+    from neurocontroller.neural.population_view import PopView
+
+    """Convert a population object to its recording equivalent."""
+    dest = target_class()
+    for k, v in source.__dict__.items():
+        if isinstance(v, PopView):
+            setattr(dest, k, v.collect(path, comm))
+        else:
+            raise TypeError(f"expected only {PopView}, found {v}({type(v)})")
+    return dest
+
+
+class RecordingManifest(BaseModel):
+    population_spikes: Path
+
+
+class PopulationSpikes(BaseModel):
+    """
+    Represents the spiking data and metadata for a single neuron population.
+    """
+
+    label: str
+    gids: NdArray
+    senders: NdArray
+    times: NdArray
+    population_size: int
+    neuron_model: str
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
+class Synapse(BaseModel):
+    source: int  # GID
+    target: int  # GID
+    syn_id: int
+    synapse_model: str
+    # receptor_type: int see https://github.com/near-nes/controller/issues/102#issuecomment-3558895210
+    delay: float
+    port: int
+
+
+class SynapseRecording(BaseModel):
+    syn: Synapse
+    weight: float
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
+class SynapseBlock(BaseModel):
+    source_pop_label: str
+    target_pop_label: str
+    synapse_recordings: List[SynapseRecording]

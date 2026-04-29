@@ -9,7 +9,7 @@ As the project involves multiple simulators, the interaction between them is gov
 
 ## NRP
 
-NRP is a simulation coordinator, which expects simulation specifications (called "engines") to implement specific interfaces. Its configuration is replicated in a pydantic model in `complete_control/config/nrp_sim_config.py`, where you can find pointers to the two simulations: `nrp_neural_engine.py` and `nrp_bullet_engine.py`. As the loop component is inside the NRP, these files offer only single step functions. 
+NRP is a simulation coordinator, which expects simulation specifications (called "engines") to implement specific interfaces. Its configuration is replicated in a pydantic model in `src/neurocontroller/config/nrp_sim_config.py`, where you can find pointers to the two simulations: `nrp_neural_engine.py` and `nrp_bullet_engine.py`. As the loop component is inside the NRP, these files offer only single step functions.
 
 ## Simulations
 
@@ -17,6 +17,53 @@ The folder `config` contains several pydantic models used for parameters. The ma
 
 ## Development
 We develop this using a (docker) devcontainer, made to the specifications of `devcontainer.json`, `docker-compose` and `docker/Dockerfile`. The HPC container (singularity) is also created from the docker container.
+
+### Using the Pip-Installable Package in Development
+
+The experiment is distributed as a Python package (`neurocontroller`) using a `src/`
+layout.
+
+#### Quick Setup (dev container)
+
+In dev mode, the package is installed in editable mode on container start:
+
+```bash
+docker compose run development
+# inside the container:
+run-trials 1 --label "my_experiment"
+```
+
+Edits to files under `src/neurocontroller/` are picked up immediately.
+
+#### Quick Setup (local venv)
+
+```bash
+pip install -e .
+run-trials 1 --label "my_experiment"
+```
+
+All required data is bundled in the wheel:
+
+| Resource | Bundled path | Override env var |
+|---|---|---|
+| Cerebellum YAML configs | `neurocontroller/cerebellum_configurations/` | — |
+| BSB network (decompresses to OS cache on first use) | `neurocontroller/artifacts/mouse_abstract_only.hdf5.gz` | `BSB_NETWORK_FILE` |
+| M1 trained weights | `neurocontroller/artifacts/m1/` | `M1_ARTIFACTS_PATH` |
+| Planner trained weights | `neurocontroller/artifacts/pfc_planner/` | `PLANNER_ARTIFACTS_PATH` |
+| Robot meshes / URDF | `neurocontroller/embodiment_assets/` | `EMBODIMENT_ASSETS_PATH` |
+
+#### Dependency pins vs. constraints
+
+`pyproject.toml` lists loose, API-level bounds. Exact reproducible pins for the Docker/HPC image live in `docker/constraints.txt` and are applied with `uv pip install -c`.
+
+#### Building the package
+
+```bash
+python -m pip install build
+python -m build  # outputs to dist/
+```
+
+Version is derived from git tags via `setuptools-scm`.
 
 ## Build and run the container
 `echo -e "UID=$(id -u)\nGID=$(id -g)" > .env && docker compose build`
@@ -39,7 +86,7 @@ Quick notes before a more complete documentation:
 - run it with `sbatch batch_job.sh`
 
 
-Optionally, mount (`--bind`) `complete_control` for "live" code changes. If paired with vscode remote, you can almost have a fully interactive development session on the cluster... Not sure if there's a way to do client vscode -> cineca HPC -> devcontainer, might check [this](https://github.com/microsoft/vscode-remote-release/issues/3066#issuecomment-1019500216)
+Optionally, mount (`--bind`) `src/neurocontroller` for "live" code changes. If paired with vscode remote, you can almost have a fully interactive development session on the cluster... Not sure if there's a way to do client vscode -> cineca HPC -> devcontainer, might check [this](https://github.com/microsoft/vscode-remote-release/issues/3066#issuecomment-1019500216)
 
 
 ## MUSIC - Deprecated

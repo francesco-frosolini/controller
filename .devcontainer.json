@@ -7,7 +7,9 @@
     // "remoteUser": "${localEnv:USER}",
     "workspaceFolder": "/sim/controller",
     "service": "development",
-    "runServices": ["development"],
+    "runServices": [
+        "development"
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -16,19 +18,29 @@
                 "ms-python.debugpy",
                 "ms-python.vscode-pylance",
                 "ms-python.isort",
-                "kennylong.kubernetes-yaml-formatter"
+                "kennylong.kubernetes-yaml-formatter",
+                "ms-toolsai.jupyter"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/sim/venv/bin/python",
                 "python.analysis.ignore": [
-                    "./complete_control/deprecated"
+                    "./src/neurocontroller/deprecated"
                 ],
                 "editor.formatOnSave": true,
                 "[python]": {
-                    "editor.defaultFormatter": "ms-python.black-formatter"
-                }
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": "explicit"
+                    }
+                },
+                "isort.importStrategy": "fromEnvironment",
+                "black-formatter.importStrategy": "fromEnvironment"
             }
         }
-    }
+    },
+    // --no-deps because deps should have been installed in build.
+    // assuming standard path of > Dev Containers: Rebuild Container
+    "postCreateCommand": "uv pip install -e . --no-build-isolation --no-deps",
+    "waitFor": "postCreateCommand"
     // "overrideCommand": true
 }

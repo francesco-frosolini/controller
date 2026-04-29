@@ -24,6 +24,15 @@ services:
     image: simulation:dev
     command: bash
 
+  production:
+    <<: *simulation-base
+    image: simulation:prod
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: prod
+    command: bash
+
   simulation-nrp:
     <<: *simulation-base
     image: simulation:nrp
@@ -31,6 +40,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       target: hpc
-    command: sh -c "python /sim/controller/complete_control/nrp_start_sim.py"
+    command: sh -c "python -m neurocontroller.nrp_start_sim"
     # depends_on:
     #   - nest-server

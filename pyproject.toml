@@ -1,0 +1,147 @@
+[build-system]
+requires = ["setuptools>=68", "setuptools-scm>=8", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neurocontroller"
+dynamic = ["version"]
+description = "NRP-based neural simulation and cerebellar control experiment"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "pollomarzo"}
+]
+maintainers = [
+    {name = "pollomarzo"},
+    {name = "vvorobjov"}
+]
+license = {text = "MIT"}
+keywords = [
+    "neuroscience",
+    "cerebellum",
+    "motor-control",
+    "nest-simulator",
+    "pybullet",
+    "robotics",
+    "closed-loop",
+    "ebrains",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+# Loose, API-level bounds for pip installs. Exact reproducible pins for the
+# Docker/HPC build live in docker/constraints.txt instead; see README.
+dependencies = [
+    "bsb>=7,<8",
+    "bsb-nest>=7,<8",
+    "pandas>=2.2,<3",
+    "scipy>=1.15,<2",
+    "numpy>=1.26,<2",
+    "plotly>=6,<7",
+    "matplotlib>=3.9,<4",
+    "pybullet>=3.2,<4",
+    "structlog>=25,<26",
+    "pydantic>=2.11,<3",
+    "Pillow>=11,<12",
+    "cairosvg>=2.8,<3",
+    "ffmpeg>=1.4,<2",
+    "ffmpeg-python>=0.2,<1",
+    "Flask>=3.1,<4",
+    "flask-cors>=6,<7",
+    "gunicorn>=23,<24",
+    "requests>=2.32,<3",
+    "RestrictedPython>=8,<9",
+    "h5py>=3.14,<4",
+    "mpilock>=1.1,<2",
+    "platformdirs>=4,<5",
+    "typing-extensions>=4.15,<5",
+    "tqdm",
+    "mpi4py>=4.1,<5",
+    "Cython>=3,<4",
+    "minjerk-dynamics>=0.1,<1",
+    "motor_controller_model @ git+https://github.com/near-nes/motor-cortex-eprop.git@main",
+    # Planner / GLE dependencies
+    "pfc_planner @ git+https://github.com/near-nes/pfc-planner.git@main",
+    "pydenticon>=0.3,<1",
+    "mnist1d>=0.0.2,<1",
+    "Gridspeccer>=0.2,<1",
+]
+
+# Direct URLs for PyTorch CPU wheels (requires PEP 440 compliance)
+# Note: pip will handle these from constraints.txt if provided
+[project.optional-dependencies]
+pytorch = [
+    "torch @ https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl",
+    "torchvision @ https://download.pytorch.org/whl/cpu/torchvision-0.21.0%2Bcpu-cp310-cp310-linux_x86_64.whl",
+    "torchaudio @ https://download.pytorch.org/whl/cpu/torchaudio-2.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl",
+]
+
+[dependency-groups]
+dev = [
+    "black==26.3.1",
+    "isort>=6.0.0",
+    "jupyterlab>=4.5,<5",
+    "ipykernel>=7.2,<8",
+    "ipywidgets>=8.1,<9",
+]
+
+[project.urls]
+Homepage = "https://wiki.ebrains.eu/bin/view/Collabs/closed-loop-motor-t3-4/"
+Repository = "https://github.com/near-nes/controller"
+
+[project.scripts]
+run-trials = "neurocontroller.run_trials:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["neurocontroller*"]
+exclude = ["neurocontroller.deprecated*", "neurocontroller.shared*", "tests*"]
+
+[tool.setuptools.package-data]
+neurocontroller = [
+    "cerebellum_configurations/**/*",
+    "artifacts/**/*.gz",
+    "artifacts/**/*.yaml",
+    "artifacts/**/*.json",
+    "artifacts/**/*.npz",
+    "artifacts/**/*.npy",
+    "artifacts/**/*.pth",
+    "artifacts/**/*.png",
+    "embodiment_assets/**/*",
+    "utils_common/**/*.svg",
+]
+
+[tool.setuptools_scm]
+# Write version to an importable module
+version_file = "src/neurocontroller/_version.py"
+# Drop the +gABCDEF local identifier so versions are acceptable to PyPI
+local_scheme = "no-local-version"
+# Used when git history is unavailable (e.g. a tarball download)
+fallback_version = "0.1.0"
+
+[tool.black]
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+norecursedirs = ["tests_plasticity"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
